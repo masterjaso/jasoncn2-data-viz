@@ -1,0 +1,91 @@
+extends layout
+
+block header
+  
+  
+
+block content
+  h1=message
+  div
+    form( action="/update" method="post")
+      div.col-md-12
+        div.form-row
+          div.form-group.col-md-6
+            label First Name*:
+            input.form-control(type="text" name="fname" placeholder="First Name" required)
+            
+        div.form-row
+          div.form-group.col-md-6
+            label Last Name*:
+            input.form-control(type="text" name="lname" placeholder="Last Name" required)
+        
+        div.form-row
+          div.form-group.col-md-6
+            label User Name*:
+            input.form-control(type="text" name="username" placeholder="Desired User Name" required)
+            
+        div.form-row
+          div.form-group.col-md-6
+            label Password*:
+            input.form-control(type="password" name="password" placeholder="Desired Password" id="password" required)
+            
+        div.form-row
+          div.form-group.col-md-6
+            label Current Job*:
+            select#occ.form-control(type="text" name="job" placeholder="Current Job" required)
+              option(value='')
+              each val, key in occ
+                option(value=key) #{val}
+        
+        div.form-row
+          div.form-group.col-md-6
+            label Confirm Password*:
+            input.form-control(type="password" name="confirm_password" placeholder="Confirm Password" id="confirm_password" required)
+        
+        div.form-row
+          div.form-group.col-md-6
+            label Company/Employer:
+            input.form-control(type="text" name="company" placeholder="Company or Employer")
+            
+        div.form-row
+          div.form-group.col-md-6
+            label Highest Education*:
+            select#edu.form-control(type="text" name="education" required)
+              option(value='')
+              each val, key in edu
+                option(value=key) #{val}
+              
+        div.form-row
+          div.form-group.col-md-6
+            label State*:
+            select#state.form-control(type="text" name="state"  required)
+              option(value='')
+              each val, key in state
+                option(value=key) #{val}
+        div.form-row
+          div.form-group.col-md-6
+            label Salary*:
+            input.form-control(type="text" name="salary" placeholder="Current Salary" required)
+        
+        div.form-row
+          div.form-group.col-md-6
+            br
+            button.btn.btn-primary.col-md-6(type="submit") Submit
+
+        p.
+          
+block footer
+  script.
+    var password = document.getElementById("password");
+    var confirm_password = document.getElementById("confirm_password");
+    
+    function validatePassword(){
+      if(password.value != confirm_password.value) {
+        confirm_password.setCustomValidity("Passwords Don't Match");
+      } else {
+        confirm_password.setCustomValidity('');
+      }
+    }
+  
+    password.onchange = validatePassword;
+    confirm_password.onkeyup = validatePassword;
