@@ -1,5 +1,0 @@
-Salary_yr_wise: CALL Get_year_data(yearid)
-User_st_sal: CALL GET_OCC_USER(Userid)
-occ_sal_stwise: CALL GET_OCC_DATA(occtitle)
-Declining job: CALL GET_DECLINE_JOB()
-progressing job: CALL GET_PROGRESS_JOB()

@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var passport = require('../app.js').passport;
+var passport = require('../libs/PassportConfig.js').passport;
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
