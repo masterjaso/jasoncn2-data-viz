@@ -14,7 +14,7 @@ const flash = require('connect-flash');
 const Query = require('./libs/Query');
 
 process.env.IP = require('./libs/addy');
-process.env.PORT = 8000;
+process.env.PORT = process.env.PORT || 8080;
 
 //Declare express application variable
 var app = express();
