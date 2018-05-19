@@ -1,9 +1,9 @@
 {
-  "name": "cs411",
+  "name": "cs498-DataViz",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node app.js"
+    "start": "npm install | node app.js"
   },
   "dependencies": {
     "bcrypt": "^2.0.1",
