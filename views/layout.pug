@@ -9,12 +9,13 @@ html(language='en')
     link(rel='shortcut icon', href='/images/favicon.png', type='image/x-icon')
     
     link(rel='stylesheet' type='text/css' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css')
-    link(rel='stylesheet' type='text/css' href='https://cdn.datatables.net/v/dt/dt-1.10.16/datatables.min.css')
+    //- link(rel='stylesheet' type='text/css' href='https://cdn.datatables.net/v/dt/dt-1.10.16/datatables.min.css')
     
     script(src="https://code.jquery.com/jquery-3.3.1.min.js")
     script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js")
-    script(src="https://cdn.datatables.net/v/dt/dt-1.10.16/datatables.min.js")
-    script(src="https://code.highcharts.com/highcharts.src.js")
+    script(src="https://d3js.org/d3.v5.min.js")
+    //- script(src="https://cdn.datatables.net/v/dt/dt-1.10.16/datatables.min.js")
+    //- script(src="https://code.highcharts.com/highcharts.src.js")
     
     block header
   body
@@ -29,26 +30,29 @@ html(language='en')
             span.icon-bar
           a.navbar-brand(href="/")= title
         // Collect the nav links, forms, and other content for toggling
-        #bs-example-navbar-collapse-1.collapse.navbar-collapse
-          ul.nav.navbar-nav
-            li.dropdown
-              a.dropdown-toggle(href="#" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false")
-                | Menu 
-                span.caret
-              ul.dropdown-menu
-                li
-                  a(href="/profile")
-                    | Profile 
-                    span.sr-only (current)
-                li
-                  a(href="/explore") Explore
-                li.divider(role="separator")
-                li
-                  a(href="/signup") Signup
-                li.divider(role="separator")
-                li
-                  a(href="/logout") Log Out
+        //#bs-example-navbar-collapse-1.collapse.navbar-collapse
+        //  ul.nav.navbar-nav
+        //    li.dropdown
+        //      a.dropdown-toggle(href="#" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false")
+        //        | Menu 
+        //        span.caret
+        //      ul.dropdown-menu
+        //        li
+        //          a(href="/profile")
+        //            | Profile 
+        //            span.sr-only (current)
+        //        li
+        //          a(href="/explore") Explore
+        //        li.divider(role="separator")
+        //        li
+        //          a(href="/signup") Signup
+        //        li.divider(role="separator")
+        //        li
+        //          a(href="/logout") Log Out
           
+        script.
+          d3.select("body").transition().duration(1250)
+            .style("background-color", "black");
           
     div.container
       block content

@@ -12,6 +12,7 @@ const mysql = require('mysql2');
 const MySQLStore = require('express-mysql-session')(session);
 const flash = require('connect-flash');
 const Query = require('./libs/Query');
+const fs = require('fs');
 
 process.env.IP = require('./libs/addy');
 process.env.PORT = process.env.PORT || 8080;
@@ -19,6 +20,21 @@ process.env.PORT = process.env.PORT || 8080;
 //Declare express application variable
 var app = express();
 
+var tsvData = fs.readFileSync(__dirname + '/data/primary-data.txt', 'utf8');
+tsvData = tsvData.split('\n');
+
+
+var priData = [];
+
+tsvData.forEach( (i)=>{
+  priData.push(i.split('\t'));
+});
+
+var colNames = JSON.parse(JSON.stringify(priData[0]));
+priData.splice(0, 1);
+
+app.locals.colNames = colNames;
+app.locals.priData = priData;
 //Setup application database
 /*
 var options = {
