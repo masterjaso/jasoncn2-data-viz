@@ -29,33 +29,15 @@ html(language='en')
             span.icon-bar
             span.icon-bar
           a.navbar-brand(href="/")= title
-        // Collect the nav links, forms, and other content for toggling
-        //#bs-example-navbar-collapse-1.collapse.navbar-collapse
-        //  ul.nav.navbar-nav
-        //    li.dropdown
-        //      a.dropdown-toggle(href="#" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false")
-        //        | Menu 
-        //        span.caret
-        //      ul.dropdown-menu
-        //        li
-        //          a(href="/profile")
-        //            | Profile 
-        //            span.sr-only (current)
-        //        li
-        //          a(href="/explore") Explore
-        //        li.divider(role="separator")
-        //        li
-        //          a(href="/signup") Signup
-        //        li.divider(role="separator")
-        //        li
-        //          a(href="/logout") Log Out
           
         script.
-          d3.select("body").transition().duration(1250)
-            .style("background-color", "black");
+          d3.select("body").transition().duration(5000)
+            .style("background-color", "#333333");
           
     div.container
       block content
   
   footer
+    script.
+      var data = !{data}
     block footer

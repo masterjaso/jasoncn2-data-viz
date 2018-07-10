@@ -6,49 +6,64 @@ const path = require('path');
 const favicon = require('serve-favicon');
 const logger = require('morgan');
 const bodyParser = require('body-parser');
-const passport = require('./libs/PassportConfig')
 const session = require('express-session');
-const mysql = require('mysql2');
 const MySQLStore = require('express-mysql-session')(session);
 const flash = require('connect-flash');
-const Query = require('./libs/Query');
 const fs = require('fs');
+var MongoClient = require('mongodb').MongoClient;
 
 process.env.IP = require('./libs/addy');
 process.env.PORT = process.env.PORT || 8080;
+process.env.db_addy = 'mongodb://dataviz:dataviz498@ds231951.mlab.com:31951/heroku_m48pfz1g'
 
 //Declare express application variable
 var app = express();
 
-var tsvData = fs.readFileSync(__dirname + '/data/primary-data.txt', 'utf8');
-tsvData = tsvData.split('\n');
+//Setup application database
+var db;
+MongoClient.connect(process.env.db_addy, { useNewUrlParser: true }, async function(err, dbObj) {
+  if (err) throw err;
+  db = dbObj.db();
+  console.log("Database created!");
+  
+  //Load data into DB - uncomment if data needs reloaded
+  /*
+  var tsvData = fs.readFileSync(__dirname + '/data/primary-data.txt', 'utf8');
+  tsvData = tsvData.split('\n');
+  var priData = [];
 
+  tsvData.forEach( (i)=>{
+    priData.push(i.split('\t'));
+  });
 
-var priData = [];
-
-tsvData.forEach( (i)=>{
-  priData.push(i.split('\t'));
+  var colNames = JSON.parse(JSON.stringify(priData[0]));
+  priData.splice(0, 1);
+  var docs = [];
+  var cnt = 0;
+  
+  console.log('Starting data parse...');
+  
+  for(var row of priData){
+    var obj = {};
+    console.log('Row: ', cnt++);
+    for(var i in row){
+      let val = colNames[i] == 'recipient_zip' ? parseInt(row[i].substring(0,5)) : row[i];
+      val = colNames[i] == 'disb_amt' ? parseFloat(val) : val;
+      obj[colNames[i]] = val;
+    }
+    docs.push(obj);
+  }
+  
+  console.log('Finish data parse!')
+  try{
+    console.log('Start loading documents...');
+    let b = await db.collection("entries").insertMany(docs);
+    console.log('Document loading complete!');
+  }
+  catch(e){console.log(e);}
+  */
 });
 
-var colNames = JSON.parse(JSON.stringify(priData[0]));
-priData.splice(0, 1);
-
-app.locals.colNames = colNames;
-app.locals.priData = priData;
-//Setup application database
-/*
-var options = {
-  connectionLimit: 10,
-  host: '',
-  port: 3306,
-  user: 'remote',
-  password: 'dingo1',
-  database: 'dingo'
-};
-var db = mysql.createPool(options);
-var queryRunner = new Query(options);
-var sessionStore = new MySQLStore(options);
-*/
 
 //view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -66,38 +81,23 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
-//app.use(passport.initialize());
-//app.use(passport.session());
 app.use(flash());
 app.use(express.static(path.join(__dirname, 'public')));
 
 
 //Core Middleware
-app.use('*', loggedIn, function(req, res, next){
+app.use('*', function(req, res, next){
   //Set flash message and clear buffer in any
   req.flashMsg = req.flash('msg').pop();
   
-  //req.dbOpt = options;
-  //req.pool = db;
-  //req.q = queryRunner;
-  
   res.locals.title = 'CS498-DataViz-JasonNeal';
+  req.db = db;
 
   next();
 });
 
 //Invoke routes
 app.use('/',            require('./routes/index'));
-//app.use('/profile',     require('./routes/profile'));
-//app.use('/login',       require('./routes/login'));
-//app.use('/signup',      require('./routes/signup'));
-
-//Logout route and handler
-app.get('/logout', function(req, res){
-  req.logout();
-  res.redirect('/');
-});
-
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -120,12 +120,5 @@ app.use(function(err, req, res, next) {
 //Start webserver listening on PORT/IP
 console.log('Starting server at:  ' + process.env.IP + ':' + process.env.PORT);
 app.listen(process.env.PORT, process.env.IP) 
-
-function loggedIn(req, res, next) {
-    if (req.user)  req.authCheck = true;
-    else  req.authCheck = false;
-    
-    next();
-}
 
 module.exports = app;

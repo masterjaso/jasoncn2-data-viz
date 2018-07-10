@@ -3,3 +3,50 @@ extends layout
 block content
   h1(class="text-center", style="color:#3e95cd")= title
   p(class="text-center", style="font-size:20px;font-weight:bold") Welcome to #{title}! 
+  
+  div.chart
+  div.controls
+  
+block footer
+  script.
+    window.onload = initialScene;
+    
+    var width = 1000;
+    var height = 750
+    
+    function initialScene(){
+      var values = d3.values(data.totals)
+      
+      var canvas = d3.select(".chart").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+        
+      var y_scale = d3.scaleLinear()
+        //.domain([d3.min(data), d3.max(data)])
+        .domain([0, data.totals[0].total])
+        .range([0, height - 75]);
+        
+      var x_scale = d3.scaleLinear()
+        //.domain([d3.min(data), d3.max(data)])
+        .domain([0, 1])
+        .range([0, width - 100]);
+
+      var y_axis = d3.axisRight()
+        .scale(y_scale);
+        
+      var x_axis = d3.axisBottom()
+        .scale(x_scale);
+      
+      canvas.append("g").call(y_axis);
+      canvas.append("g").call(x_axis);
+        
+      canvas.selectAll("rect")
+        .data(data.totals)
+        .enter()
+        .append("rect")
+        .attr("width", 875)
+        .attr("height", 650)
+        .attr("y", 15)
+        .attr("x", 50)
+        .attr("fill", "purple")
+    }
