@@ -2,51 +2,171 @@ extends layout
 
 block content
   h1(class="text-center", style="color:#3e95cd")= title
-  p(class="text-center", style="font-size:20px;font-weight:bold") Welcome to #{title}! 
+  p(class="text-center", style="font-size:20px;font-weight:bold") An exploration of spending types during the 2016 Presidential Primary 
   
+  div.essay
+    p.  
+      This is where the informational essay will appear with details to guide the user.
+      
+  div.controls.form-group
+    div.form-check
+      label.form-check-input(for='party') #[input#party.form-check-label(name= 'filters' type="radio" value="p" onclick="barChart(chartDiv, data.p, 'total')")] Party
+    div.form-check
+      label.form-check-input(for='state') #[input#party.form-check-label(name= 'filters' type="radio" value="s" onclick="barChart(chartDiv, data.s, 'total')")] State
+    div.form-check
+      label.form-check-input(for='type') #[input#party.form-check-label(name= 'filters' type="radio" value="t" onclick="barChart(chartDiv, data.t, 'total')")] Type
+    button.btn.btn-primary(type="submit" onclick="initialScene()") Reset
+    
   div.chart
-  div.controls
   
 block footer
   script.
     window.onload = initialScene;
+    var chartDiv = document.getElementsByClassName('chart')[0];
+    var test;
     
-    var width = 1000;
-    var height = 750
     
     function initialScene(){
-      var values = d3.values(data.totals)
+      console.log('InitialScene Fired');
+      barChart(chartDiv, data.totals, 'total');
+    }
+    
+    function barChart(div, d, metric){
+      //Clear any existing svg's since this is a single chart page
+      d3.selectAll('svg').remove();
+      //Setup Data
+      var maxResults = 10;
+      var min = d3.min(d, (d) => { return d[metric]});
+      var max = d3.max(d, (d) => { return d[metric]});
+      var dataSet = d.sort( (x,y) => { return d3.descending(x[metric], y[metric]); });
+      dataSet = dataSet.slice(0,maxResults);
       
-      var canvas = d3.select(".chart").append("svg")
-        .attr("width", width)
-        .attr("height", height);
+      //Get item label types
+      var label = Object.keys(dataSet[0]._id)[0];
+      var labels = []
+      dataSet.forEach( (d) => {
+        labels.push(d._id[label]);
+      });
+      
+      //Margin design pattern:  https://bl.ocks.org/mbostock/3019563
+      var margin = {top: 20, right: div.offsetWidth * .1, bottom: 100, left: div.offsetWidth * .1};
+      var w = div.offsetWidth;
+      var h = window.innerHeight * 0.7;
+      
+      //Set chart area with consideration for margins
+      var width = w - margin.left - margin.right;
+      var height = h - margin.top - margin.bottom;
+      
+      //tick count, padding between bars
+      var ticks = d3.min( [dataSet.length, maxResults] );
+      var pad = 5;
+      
+      //Set max number of items to visualize
+      if(labels.length >= ticks) labels = labels.slice(0,10);
+      
+      //Create formater for value representations - significant digits w/ 2 decimal places
+      var format = d3.format(".2s");
+      var format2 = d3.format(",.2f");
+      
+      // Define the div for the tooltip
+      var tooltip = d3.select("body").append("div")	
+      .attr("class", "tooltip")     
+      .style("opacity", 0);
+      
+      //Create canvas with svg surrounded by proper margins to work with
+      var canvas = d3.select(div)
+        .append("svg")
+          .attr("class", "canvas")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      
+      //Establish Axis elements
+      var y_dom = max === min
+        ? [max, 0]
+        : [max, min]
         
       var y_scale = d3.scaleLinear()
-        //.domain([d3.min(data), d3.max(data)])
-        .domain([0, data.totals[0].total])
-        .range([0, height - 75]);
+        .domain(y_dom)
+        .range([0, height]);
         
-      var x_scale = d3.scaleLinear()
-        //.domain([d3.min(data), d3.max(data)])
-        .domain([0, 1])
-        .range([0, width - 100]);
+      var x_scale = d3.scaleBand()
+        .domain(labels)
+        .range([0,width]);
 
-      var y_axis = d3.axisRight()
-        .scale(y_scale);
+      var y_axis = d3.axisLeft(y_scale)
+        .tickFormat( (d) => { return format(d)})
+        //.scale(y_scale);
         
-      var x_axis = d3.axisBottom()
-        .scale(x_scale);
+      var x_axis = d3.axisBottom(x_scale)
+        //.scale(x_scale);
       
-      canvas.append("g").call(y_axis);
-      canvas.append("g").call(x_axis);
-        
-      canvas.selectAll("rect")
-        .data(data.totals)
-        .enter()
+      //Draw the actual axis's and place properly
+      canvas.append("g")
+        .attr("class", "y_axis")
+        .attr("transform", "translate(0,0)")
+        .call(y_axis);
+      canvas.append("g")
+        .attr("class", "x_axis")
+        .attr("transform", "translate(0,"+height+")")
+        .call(x_axis)
+          .selectAll(".tick text")
+          .call(wrap, x_scale.bandwidth());
+      
+      //Attach dataSet to rects to draw the bars
+      canvas
+      .selectAll("rect")
+      .data(dataSet)
+      .enter()
         .append("rect")
-        .attr("width", 875)
-        .attr("height", 650)
-        .attr("y", 15)
-        .attr("x", 50)
-        .attr("fill", "purple")
+        .attr("width", (d) => {return width/ticks - pad;})
+        .attr("height", (d) => {return d3.max( [height * (d[metric]/max), 5]);})
+        .attr("y", (d) => {return height - d3.max( [height * (d[metric]/max), 5]);})
+        .attr("x", (d,i) => {return i * (width/ticks) + pad/2;})
+        .attr("fill", (d,i) => {return d3.schemeCategory10[i]})
+        .on("mouseover", (d,i,node) => {
+          d3.select(node[i]).attr("fill", d3.schemePaired[4]);
+        })
+        .on("mousemove", (d,i) => {		
+          tooltip.transition()		
+              .duration(100)		
+              .style("opacity", .9);		
+          tooltip.html( (labels[i] || "Totals") + ": "  + format2(d[metric]))	
+              .style("left", (d3.event.pageX) + "px")		
+              .style("top", (d3.event.pageY - 28) + "px");	
+          })					
+        .on("mouseout", function(d,i,node) {
+            tooltip.transition()		
+                .duration(500)		
+                .style("opacity", 0);	
+            d3.select(node[i]).attr("fill", d3.schemeCategory10[i]);
+        })
+      .exit().remove()
+    }
+    
+    function wrap(text, width) {
+      text.each(function() {
+        var text = d3.select(this),
+        words = text.text().split(/\s+/).reverse(),
+        word,
+        line = [],
+        lineNumber = 0,
+        lineHeight = 1.1, // ems
+        y = text.attr("y"),
+        dy = parseFloat(text.attr("dy")),
+        tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em")
+        
+        while (word = words.pop()) {
+          line.push(word)
+          tspan.text(line.join(" "))
+          
+          if (tspan.node().getComputedTextLength() > width) {
+            line.pop()
+            tspan.text(line.join(" "))
+            line = [word]
+            tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", `${++lineNumber * lineHeight + dy}em`).text(word)
+          }
+        }
+      })
     }

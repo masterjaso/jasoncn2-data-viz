@@ -32,12 +32,49 @@ html(language='en')
           
         script.
           d3.select("body").transition().duration(5000)
-            .style("background-color", "#333333");
+            .style("background-color", "#faf0e6");
           
     div.container
       block content
   
   footer
+    style.
+      .container:after{
+        content: "";
+        display: table;
+        clear: both;
+      }
+      
+      .controls{
+        float: left;
+        width: 30%;
+      }
+      
+      .chart{
+        float: left;
+        width: 60%;
+        height: 100%;
+      }
+      
+      .essay{
+        float: center;
+        width: 75%;
+        height: 75%;
+      }
+      
+      div.tooltip {	
+        position: absolute;			
+        text-align: center;			
+        width: 100px;					
+        //height: 40px;					
+        padding: 2px;				
+        font: 12px sans-serif;		
+        background: lightsteelblue;	
+        border: 0px;		
+        border-radius: 8px;			
+        pointer-events: none;			
+      }
+
     script.
       var data = !{data}
     block footer
