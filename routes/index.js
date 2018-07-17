@@ -28,17 +28,30 @@ router.get('/', async function(req, res, next){
 
 //Handle POST requests
 router.post('/', async function(req, res, next){
-  res.send('hi');
+  console.log('REQUEST: ', req.body);
+  
+  var data = await query(req.body.drill, req.body.match, req.body.matchBy);
+  
+  res.json({data: data});
 });
 
-async function query(groupBy){
+async function query(groupBy, filterType, filterBy){
   let group = {};
   if(groupBy.indexOf('p') >= 0) group.party = '$Party';
   if(groupBy.indexOf('s') >= 0) group.state = '$recipient_st';
   if(groupBy.indexOf('t') >= 0) group.type = '$disb_desc';
   
+  let match = {};
+  if(filterBy){
+    if(filterType.indexOf('p') >= 0) match.Party = filterBy;
+    if(filterType.indexOf('s') >= 0) match.recipient_st = filterBy;
+    if(filterType.indexOf('t') >= 0) match.disb_desc = filterBy;
+  }
+  
   let results = [];
+  
   let cursor = db.aggregate([
+    {$match: match},
     {
       $group: {
         _id: group,
@@ -49,7 +62,7 @@ async function query(groupBy){
   ]);
   
   for (let val = await cursor.next(); val != null; val = await cursor.next()) {
-    //console.log(val);
+    //console.log('VALUE: ', val);
     results.push(val);
   }
   

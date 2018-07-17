@@ -2,42 +2,66 @@ extends layout
 
 block content
   h1(class="text-center", style="color:#3e95cd")= title
-  p(class="text-center", style="font-size:20px;font-weight:bold") An exploration of spending types during the 2016 Presidential Primary 
+  p(class="text-center", style="font-size:20px;font-weight:bold") An exploration of spending types and location by party during the 2016 Presidential Primary 
   
   div.essay
     p.  
-      This is where the informational essay will appear with details to guide the user.
+      In this dataset there are various  qualitative values to work with and the singular quantitative value we sought (Disb Amt, the amount spent).  The first consideration was what qualitative classifiers were relevant to the question being asked.  The first pass was to keep all geo-location related elements (zip-code, state, city, etc...) as this felt very relevant to the 'where' aspect of the question.  However, given that this was a national race, the final 'where' classifier for best consumption turned out to be at the State level.  Another key field that was determined to be a good exploratory item that touched on expenditures was the Disbursement Type - what the transaction related to.  Lastly, given the political nature it was decided to include Party.  Other fields did not seem essential to utilize in visualizing the data.  These included things like Transaction_ID, free form comments, and the form name that the expense was submitted on.  
+      #[br]#[br]
+      The dashboard as presented is able to answer both of the 'where' questions as it relates to spending during the 2016 primary election.  Where in terms of state geopgraphies as well as where in terms of the industries that the funds are poured into.  Interestingly, Washington D.C. and Virginia were the two largest locations where the disbursements occured.  This was surprising, particularly for D.C. as they do not have population or electoral influence that is commensurate to the spending that occured there.  That being said, it is actually intuitive that most political spending would happen there given that the major spending types were related to digital media.  This type of purchase requires no physical presence to impact other geographies, and compound that with the fact that Washington D.C. and the northern Virginia metro area are the central hub for U.S. national political influence  creates a perfect climate to attract the lion share of all spending during the 2016 presidential primary campaign.
       
   div.controls.form-group
+    h3 Data Controls
     div.form-check
-      label.form-check-input(for='party') #[input#party.form-check-label(name= 'filters' type="radio" value="p" onclick="barChart(chartDiv, data.p, 'total')")] Party
+      label.form-check-input #[input#party.form-check-label(name='filters' type="radio" value="p" onclick="barChart(chartDiv, data.p, 'total', 'Spending by Party'); updateControls()")] Party
     div.form-check
-      label.form-check-input(for='state') #[input#party.form-check-label(name= 'filters' type="radio" value="s" onclick="barChart(chartDiv, data.s, 'total')")] State
+      label.form-check-input #[input#party.form-check-label(name='filters' type="radio" value="s" onclick="barChart(chartDiv, data.s, 'total', 'Spending by State'); updateControls()")] State
     div.form-check
-      label.form-check-input(for='type') #[input#party.form-check-label(name= 'filters' type="radio" value="t" onclick="barChart(chartDiv, data.t, 'total')")] Type
+      label.form-check-input #[input#party.form-check-label(name='filters' type="radio" value="t" onclick="barChart(chartDiv, data.t, 'total', 'Spending by Type'); updateControls()")] Type 
     button.btn.btn-primary(type="submit" onclick="initialScene()") Reset
+    button.btn.btn-primary(type="submit" onclick="showAbout()") About the Visualization
+    br
+    h4 Drill-In Control
+    div.form-check
+      label.form-check-input #[input#party.form-check-label(name='filters2' type="radio" value="p")] Party 
+    div.form-check
+      label.form-check-input #[input#party.form-check-label(name='filters2' type="radio" value="s")] State 
+    div.form-check
+      label.form-check-input #[input#party.form-check-label(name='filters2' type="radio" value="t")] Type 
+    
     
   div.chart
   
 block footer
   script.
+    //Setup initial view and variables to support
     window.onload = initialScene;
     var chartDiv = document.getElementsByClassName('chart')[0];
     var test;
     
+    //Data sets to hold filtered values
+    var drillData;
     
     function initialScene(){
       console.log('InitialScene Fired');
-      barChart(chartDiv, data.totals, 'total');
+      barChart(chartDiv, data.totals, 'total', 'Total Spent');
     }
     
-    function barChart(div, d, metric){
+    function updateControls(){
+      $('input[name=filters2]').attr('disabled', false);
+      var topFilter = $('input[name=filters]:checked').val();
+      $('input[name=filters2][value=' + topFilter + ']').attr('disabled', true).prop('checked', false);
+    }
+    
+    function barChart(div, d, metric, title){
+      test = d;
       //Clear any existing svg's since this is a single chart page
       d3.selectAll('svg').remove();
       //Setup Data
       var maxResults = 10;
       var min = d3.min(d, (d) => { return d[metric]});
       var max = d3.max(d, (d) => { return d[metric]});
+      console.log('D', d);
       var dataSet = d.sort( (x,y) => { return d3.descending(x[metric], y[metric]); });
       dataSet = dataSet.slice(0,maxResults);
       
@@ -49,7 +73,7 @@ block footer
       });
       
       //Margin design pattern:  https://bl.ocks.org/mbostock/3019563
-      var margin = {top: 20, right: div.offsetWidth * .1, bottom: 100, left: div.offsetWidth * .1};
+      var margin = {top: 30, right: div.offsetWidth * .1, bottom: 100, left: div.offsetWidth * .1};
       var w = div.offsetWidth;
       var h = window.innerHeight * 0.7;
       
@@ -68,7 +92,7 @@ block footer
       var format = d3.format(".2s");
       var format2 = d3.format(",.2f");
       
-      // Define the div for the tooltip
+      //Define the div for the tooltip
       var tooltip = d3.select("body").append("div")	
       .attr("class", "tooltip")     
       .style("opacity", 0);
@@ -81,6 +105,15 @@ block footer
           .attr("height", height + margin.top + margin.bottom)
         .append("g")
           .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+          
+      //Create title
+      canvas.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", 0 - (margin.top / 2))
+        .attr("text-anchor", "middle")  
+        .style("font-size", "16px") 
+        .style("text-decoration", "underline")  
+        .text(title);
       
       //Establish Axis elements
       var y_dom = max === min
@@ -136,13 +169,19 @@ block footer
               .style("left", (d3.event.pageX) + "px")		
               .style("top", (d3.event.pageY - 28) + "px");	
           })					
-        .on("mouseout", function(d,i,node) {
+        .on("mouseout", (d,i,node) => {
             tooltip.transition()		
                 .duration(500)		
                 .style("opacity", 0);	
             d3.select(node[i]).attr("fill", d3.schemeCategory10[i]);
         })
-      .exit().remove()
+        .on("click", (d,i,node) => {
+          drillDown(labels[i]);
+          tooltip.transition()		
+                .duration(100)		
+                .style("opacity", 0);	
+        })
+      .exit().remove();
     }
     
     function wrap(text, width) {
@@ -169,4 +208,80 @@ block footer
           }
         }
       })
+    }
+    
+    function showAbout(){
+      alert('This is a drill down story visualization.  ' +
+      'We start with some textual information for context the is static throughout all views so the user can ' +
+      'reference it at any time during their drill in discovery.  There are a set of controls on the left that ' +
+      'allow the user to set the top level of data to be viewed to one of the three primary parameters:  Party, State, or Type.  ' +
+      'These radio buttons not only set the parameters, but also act as triggers to update the visual data being displayed.  '  +
+      'Annotations are provided on mouseover and hover events with highlights indicating which data element is being ' +
+      'inspected at the time.  This allows the user to move from the visual high level details with abbreviated values ' +
+      'to the gainular details of specific amounts within the data set being viewed at the time.  The bars within the visual ' +
+      'also have mouseclick events to act as triggers which create a deeper level view by adding one of the other ' +
+      'filter types to the grouping.  This allows the user to get very fine details about specific combinations of ' +
+      'party, state, and type to better understand where the primary spending occured both geographically and industry-wise.  ' +
+      'Lastly, to keep the visual clean, we focus on the top 10 in any parameter set so as to prevent clutter and visual confusion.');
+    }
+    
+    function drillDown(label){
+      //Get filters
+      var match = $('input[name=filters]:checked').val();
+      var drill = $('input[name=filters2]:checked').val();
+      
+      //Ensure 2 filters selected else notify the user and stop
+      if(!match || !drill){
+        alert('Please select 2 filters from Data Controls to drill into the data');
+        return;
+      }
+      
+      var payload = {match: match, drill: drill, matchBy: label};
+      var titleText;
+      
+      switch( match ){
+        case 'p':
+          titleText = 'Party = ' + label + ' -- By: ';
+          break;
+        case 's':
+          titleText = 'State = ' + label + ' -- By: ';;
+          break;
+        case 't':
+          titleText = 'Type = ' + label + ' -- By: ';;
+          break;
+        default:
+          return;
+      }
+      
+      switch( drill ){
+        case 'p':
+          titleText += 'Party';
+          break;
+        case 's':
+          titleText += 'State';;
+          break;
+        case 't':
+          titleText += 'Type';;
+          break;
+        default:
+          return;
+      }
+      
+      $.ajax({
+        type: "POST",
+        url: "/",
+        data: payload,
+        success: (d)=>{
+          console.log('HERE',d);
+          barChart(chartDiv, d.data, 'total', titleText);
+          $('input[name=filters]').prop('checked', false);
+          $('input[name=filters2]').prop('checked', false);
+          $('input[name=filters2]').attr('disabled', false);
+        },
+        dataType: "json"
+      });
+    }
+    
+    function circleGraph(div, d, metric, title){
+      
     }
